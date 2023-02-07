@@ -8,24 +8,30 @@ LODs are defined with [glTF `MSFT_lod` extension](https://github.com/KhronosGrou
 
 ## How to use
 
+Use with the `--config` option of gltf-transform, see https://github.com/donmccurdy/glTF-Transform/issues/85
+
+Currently requires to build gltf-transform from source.  
+This commit has the --config extension:  
+`5f2239235d7d3b3724015b988a552182a597b3f4`
+
+When on that commit, run
 ```
-# Clone this repository
-$ git clone https://github.com/takahirox/glTF-Transform-lod-script
-$ cd glTF-Transform-lod-script
+npm install
+npm run dist
+cd packages/cli
+npm link
+```
 
-# Install dependencies
-$ npm install @gltf-transform/core @gltf-transform/functions meshoptimizer command-line-args
-
-# Run
-$ node generate_lod.mjs in.glb out.glb \
- --ratio 0.5,0.1 \
- --error 0.01,0.05 \
- --coverage 0.7,0.3,0.0 \
- --texture 512x512,128x128
+And now you can run `gltf-transform` globally as usual and due to `npm link` it will use the local version: 
+```
+$ gltf-transform lods in.glb out.glb --config generate_lods.js
 ```
 
 ## Options
 
+When coverage is used, the coverage array should be one item longer than the ratio/error arrays. See MSFT_lods docs linked above for more info.  
+
+**TODO:** haven't tested passing options into the command.
 
 | Option | Description | Example | Required |
 | ------ | ----------- | ------- | -------- |
@@ -39,3 +45,5 @@ $ node generate_lod.mjs in.glb out.glb \
 ## Limitations
 
 This script is not guaranteed to work for all the possible glTF assets especially if they are complex or have extensions. Please edit the script on your end if it doesn't work for your assets.
+
+Doesn't currently generate default coverage values if none are provided, but still injects the MSFT_screencoverage extension. This means that viewers that assume that MSFT_screencoverage entries match MSFT_lods entries may have trouble, and other viewers will come up with their own screen coverage values.
