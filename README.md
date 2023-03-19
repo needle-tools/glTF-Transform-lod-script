@@ -10,7 +10,7 @@ LODs are defined with [glTF `MSFT_lod` extension](https://github.com/KhronosGrou
 
 Use with the `--config` option of gltf-transform, see https://github.com/donmccurdy/glTF-Transform/issues/85
 
-Requires gltf-transform 3.x
+Requires gltf-transform 3.x.
 
 
 
@@ -21,11 +21,12 @@ Requires gltf-transform 3.x
 $ gltf-transform lods in.glb out.glb --config generate_lods.js
 ```
 
-~Currently requires to build gltf-transform from source.  
 
-This commit has the --config extension:  
 
-`5f2239235d7d3b3724015b988a552182a597b3f4`~
+
+
+
+
 
 ## Options
 
