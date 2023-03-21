@@ -1,16 +1,6 @@
-import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { Extension, ExtensionProperty, Node, PropertyType } from '@gltf-transform/core';
 import { weld, simplifyPrimitive,textureResize } from '@gltf-transform/functions';
 import { MeshoptSimplifier } from 'meshoptimizer';
-
-/** Custom transform example; clears materials. */
-function clearMaterials(options) {
-    return async (document) => {
-        for (const material of document.getRoot().listMaterials()) {
-            material.dispose();
-        }
-    };
-}
 
 /******************************************************************************
  * Example implementation of MSFT_lod for glTF-Transform.
@@ -18,7 +8,7 @@ function clearMaterials(options) {
 
 const MSFT_LOD = 'MSFT_lod';
 
-class LODExtension extends Extension {
+export class LODExtension extends Extension {
     extensionName = MSFT_LOD;
     static EXTENSION_NAME = MSFT_LOD;
 
@@ -85,7 +75,7 @@ class LOD extends ExtensionProperty {
     }
 }
 
-function makeLods(options) {
+export function makeLods(options) {
 
     const ratios = options.ratio
         ? options.ratio.split(',').map(value => Number(value)) : [0.5, 0.25, 0.125, 0.05, 0];
@@ -184,30 +174,3 @@ function makeLods(options) {
         }
     };
 }
-
-export default {
-    extensions: [...ALL_EXTENSIONS, LODExtension],
-    onProgramReady: ({ program, io, Session }) => {
-        // for testing: two commands exposed by the same --config file
-        // this one is from the sample and just clears materials
-        program
-            .command('clearMaterials', 'Clear Materials')
-            .help('Removes all materials from the file')
-            .argument('<input>', 'Path to read glTF 2.0 (.glb, .gltf) model')
-            .argument('<output>', 'Path to write output')
-            .action(({ args, options, logger }) =>
-                Session.create(io, logger, args.input, args.output).transform(clearMaterials(options))
-            );
-        
-        // this creates LODs for all meshes
-        program
-            .command('lods', 'Create LODs')
-            .help('Creates LODs')
-            .argument('<input>', 'Path to read glTF 2.0 (.glb, .gltf) model')
-            .argument('<output>', 'Path to write output')
-            // TODO add custom arguments to feed into madeLods
-            .action(({ args, options, logger }) =>
-                Session.create(io, logger, args.input, args.output).transform(makeLods(options))
-            );
-    },
-};
