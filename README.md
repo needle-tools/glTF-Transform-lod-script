@@ -1,3 +1,42 @@
+Contains two scripts built on top of gltf-transform:
+- externalizing high-res textures
+- generating LODs for meshes
+
+# Texture size reduction with high-res textures in "extras"
+
+## How to use
+
+```
+npm install
+npm run gltf-transform -- fullProcess myFile.glb --config config.mjs --verbose
+```
+This will
+- create a new folder "myFile"
+- strip normals/tangents/vertex colors from the file
+- create a 128x128 copy of each baseColorTexture
+- make materials unlit
+- compress with meshopt and etc1s
+- move the original textures to "myFile/hd/<textureName>.ktx2" and reference them from each material
+- create "myFile/myFile.glb" which has the low-resolution textures.
+
+## Extras format
+
+The extras per material look like this:
+
+```json
+"extras": {
+    "deferred": {
+        "baseColorTexture": {
+            "uri": "hd/LargeTex3.ktx2"
+        }
+    }
+},
+```
+
+At runtime, you can read the extras per material after loading the original file and on-demand load the high-res KTX2 textures.
+
+---------------
+
 # glTF-Transform-lod-script
 
 This is a script to make LODs for an [glTF](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html) asset with [`glTF-Transform`](https://gltf-transform.donmccurdy.com/).

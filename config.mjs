@@ -31,7 +31,7 @@ export default {
             );
         
         program
-            .command('stripLightingData', 'Strip Lighting Data')
+            .command('fullProcess', 'Removes lighting-related vertex attributes (Normals/Tangents), compresses with etc1s + meshopt, creates deferred textures and puts low-resolution versions of those textures in the file.')
             .help('Removes all normals, tangents, normal textures, PBR textures from the file, and sets materials to unlit')
             .argument('<input>', 'Path to read glTF 2.0 (.glb, .gltf) model')
             // .argument('<output>', 'Path to write output')
