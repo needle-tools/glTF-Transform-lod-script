@@ -39,22 +39,16 @@ export default {
             })
             // .argument('<output>', 'Path to write output')
             .action(({ args, options, logger }) => {
-                console.log("args: " + JSON.stringify(args));
                 const filename = path.basename(args.input, '.glb');
-                const versionSuffix = (options.suffix !== '' && options.suffix !== undefined) ? '.' + options.suffix : '';
+                const versionSuffix = (options.ver !== '' && options.ver !== undefined) ? '.' + options.ver : '';
                 const dir = path.dirname(args.input) + '/' + filename + versionSuffix;
-                /*
-                const outputPath = dir + "/" + filename + ".gltf";
-
-                console.log(dir);
-                */
                 
-                // delete directory, then create it
+                // delete directory, then recreate it
                 if (fs.existsSync(dir))
                     fs.rmdirSync(dir, { recursive: true });
-                
-                // create directory if it doesn't exist
                 fs.mkdirSync(dir, { recursive: true });
+
+                // root folder for export, required for some functions
                 options.baseDir = dir;
                 
                 const outputPath = options.baseDir + "/" + filename + versionSuffix + ".glb";
