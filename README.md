@@ -6,18 +6,27 @@ Contains two scripts built on top of gltf-transform:
 
 ## How to use
 
-```
+```js
 npm install
-npm run gltf-transform -- fullProcess myFile.glb --config config.mjs --verbose
+npm run gltf-transform -- fullProcess "path/to/myFile.glb" --config config.mjs --verbose
 ```
+
 This will
-- create a new folder "myFile"
+- create a new folder `myFile`
 - strip normals/tangents/vertex colors from the file
 - create a 128x128 copy of each baseColorTexture
 - make materials unlit
 - compress with meshopt and etc1s
-- move the original textures to "myFile/hd/<textureName>.ktx2" and reference them from each material
-- create "myFile/myFile.glb" which has the low-resolution textures.
+- move the original textures to `myFile/hd/<textureName>.ktx2` and reference them from each material
+- create `myFile/myFile.glb` which has the low-resolution textures.
+
+
+You can also provide a version suffix `--ver`:
+```js
+npm run gltf-transform -- fullProcess "path/to/myFile.glb" --ver 5 --config config.mjs --verbose
+```
+
+This will append that version to both the folder and the .glb file name, such as `--ver 5`: `myFile-1.2` → `myFile-1.2.5`.
 
 ## Extras format
 

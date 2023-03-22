@@ -34,10 +34,15 @@ export default {
             .command('fullProcess', 'Removes lighting-related vertex attributes (Normals/Tangents), compresses with etc1s + meshopt, creates deferred textures and puts low-resolution versions of those textures in the file.')
             .help('Removes all normals, tangents, normal textures, PBR textures from the file, and sets materials to unlit')
             .argument('<input>', 'Path to read glTF 2.0 (.glb, .gltf) model')
+            .option('--ver <suffix>', 'Version suffix (e.g. 1.2.5 → 1.2.5.2', {
+                default: '',
+            })
             // .argument('<output>', 'Path to write output')
             .action(({ args, options, logger }) => {
+                console.log("args: " + JSON.stringify(args));
                 const filename = path.basename(args.input, '.glb');
-                const dir = path.dirname(args.input) + '/' + filename;
+                const versionSuffix = (options.suffix !== '' && options.suffix !== undefined) ? '.' + options.suffix : '';
+                const dir = path.dirname(args.input) + '/' + filename + versionSuffix;
                 /*
                 const outputPath = dir + "/" + filename + ".gltf";
 
@@ -52,7 +57,7 @@ export default {
                 fs.mkdirSync(dir, { recursive: true });
                 options.baseDir = dir;
                 
-                const outputPath = options.baseDir + "/" + filename + ".glb";
+                const outputPath = options.baseDir + "/" + filename + versionSuffix + ".glb";
 
                 Session.create(io, logger, args.input, outputPath).transform(
                     ...[
