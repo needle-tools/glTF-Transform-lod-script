@@ -14,7 +14,7 @@ function clearMaterials(options) {
 }
 
 export default {
-    extensions: [...ALL_EXTENSIONS, LODExtension],
+    extensions: [...ALL_EXTENSIONS],
     onProgramReady: ({ program, io, Session }) => {
         // for testing: two commands exposed by the same --config file
         // this one is from the sample and just clears materials
@@ -22,7 +22,6 @@ export default {
             .command('clearMaterials', 'Clear Materials')
             .help('Removes all materials from the file')
             .argument('<input>', 'Path to read glTF 2.0 (.glb, .gltf) model')
-            .argument('<output>', 'Path to write output')
             .action(({ args, options, logger }) => {
                 const filename = path.basename(args.input, '.glb');
                 const dir = path.dirname(args.input) + '/' + filename;

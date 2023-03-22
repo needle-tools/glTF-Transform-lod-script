@@ -1,4 +1,6 @@
+import fs from "fs";
 import { KHRMaterialsUnlit } from '@gltf-transform/extensions';
+import sharp from "sharp";
 
 function stripMeshAttributes(document) {
     const uniqueAttributes = new Set();
@@ -13,17 +15,9 @@ function stripMeshAttributes(document) {
 
                 uniqueAttributes.add(semantic);
 
-                if (semantic == 'COLOR_0') {
-                    primitive.setAttribute(semantic, null);
-                    attribute.dispose();
-                }
-
-                if (semantic == 'NORMAL') {
-                    primitive.setAttribute(semantic, null);
-                    attribute.dispose();
-                }
-
-                if (semantic == 'TANGENT') {
+                if (
+                    semantic == 'COLOR_0' || semantic == 'COLOR_1' || 
+                    semantic == 'NORMAL' || semantic == 'TANGENT') {
                     primitive.setAttribute(semantic, null);
                     attribute.dispose();
                 }
@@ -52,18 +46,77 @@ function switchMaterialsToUnlit(document) {
     }
 }
 
+const LOW_RES = "__lowres";
 
-export function stripChannels(options) {
+export function createDuplicateImagesAsBuffers(options) {
+    return async (document) => {
+        // iterate all materials and duplicate the baseColorTexture to the emissiveTexture slot, but as buffer
+        for (const material of document.getRoot().listMaterials()) {
+            const baseColorTexture = material.getBaseColorTexture();
+            if (baseColorTexture) {
+                const name = baseColorTexture.getName();
+                const image = baseColorTexture.getImage();
+
+                // resize with Sharp
+                const newBuffer = await sharp(image)
+                    .resize(128, 128)
+                    .png()
+                    .toBuffer();
+
+                const newTexture = document.createTexture(name + LOW_RES);
+                newTexture.setImage(newBuffer);
+                newTexture.setMimeType("image/png");
+                material.setEmissiveTexture(newTexture);
+            }
+        }
+    };
+}
+
+export function extractHighresImagesToDiskAndSavePathInExtras(options) {
+    return async (document) => {
+        // iterate all materials and duplicate the baseColorTexture to the emissiveTexture slot, but as buffer
+        for (const material of document.getRoot().listMaterials()) {
+            const baseColorTexture = material.getBaseColorTexture();
+            const emissiveTexture = material.getEmissiveTexture();
+
+            if (baseColorTexture && emissiveTexture && emissiveTexture.getName().endsWith(LOW_RES)) {
+                
+                const name = baseColorTexture.getName();
+                const mime = baseColorTexture.getMimeType();
+                const extension = mime.split("/")[1];
+                const data = baseColorTexture.getImage();
+
+                const hdDir = "hd";
+                const fullDir = options.baseDir + "/" + hdDir;
+                // create directory if it doesn't exist
+                fs.mkdirSync(fullDir, { recursive: true });
+
+                // write "image" buffer to disk
+                const uri = fullDir + "/" + name + "." + extension;
+                fs.writeFileSync(uri, data);
+
+                material.setExtras({
+                    deferred: {
+                        baseColorTexture: {
+                            uri: hdDir + "/" + name + "." + extension,
+                        }
+                    }
+                });
+
+                // shuffle around so that our lowres texture is the baseColorTexture
+                // and highres is removed from the document - it's now external
+                material.setBaseColorTexture(emissiveTexture);
+                material.setEmissiveTexture(null);
+                baseColorTexture.dispose();
+            }
+        }
+    }
+}
+
+export function stripChannelsAndMakeUnlit(options) {
     return async (document) => {
         stripMeshAttributes(document);
         stripNormalMaps(document);
         switchMaterialsToUnlit(document);
-/*
-        const transforms = [];
-        transforms.push(prune());
-        transforms.push(toktx(ETC1S_DEFAULTS));
-        transforms.push(meshopt({encoder: MeshoptEncoder}));
-        await document.transform(...transforms);
-*/
     };
 }

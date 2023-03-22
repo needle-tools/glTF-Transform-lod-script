@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@gltf-transform/cli": "^3.1.2",
+    "@gltf-transform/core": "^3.1.2",
+    "@gltf-transform/extensions": "^3.1.2",
+    "@gltf-transform/functions": "^3.1.2",
+    "meshoptimizer": "^0.18.1",
+    "sharp": "^0.31.3"
+  },
+  "scripts": {
+    "gltf-transform": "node node_modules/@gltf-transform/cli/bin/cli.js"
+  }
+}

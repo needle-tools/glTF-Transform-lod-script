@@ -1,10 +1,15 @@
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { makeLods, LODExtension } from './generate_lod.mjs';
 import { clearMaterials } from './clear_materials.mjs';
-import { stripChannels } from './strip_channels.mjs';
+import { 
+    stripChannelsAndMakeUnlit, 
+    createDuplicateImagesAsBuffers,
+    extractHighresImagesToDiskAndSavePathInExtras 
+} from './strip_channels.mjs';
+
+import { prune } from '@gltf-transform/functions';
 
 import { MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer';
-import { prune } from '@gltf-transform/functions';
 import { ETC1S_DEFAULTS, toktx } from '@gltf-transform/cli';
 import { meshopt } from '@gltf-transform/functions';
 
@@ -45,15 +50,18 @@ export default {
                 
                 // create directory if it doesn't exist
                 fs.mkdirSync(dir, { recursive: true });
+                options.baseDir = dir;
                 
-                const outputPath = dir + ".clean.glb";
+                const outputPath = options.baseDir + "/" + filename + ".glb";
 
                 Session.create(io, logger, args.input, outputPath).transform(
                     ...[
-                        stripChannels(options),
+                        stripChannelsAndMakeUnlit(options),
                         prune(),
-                        // toktx(ETC1S_DEFAULTS),
-                        // meshopt({encoder: MeshoptEncoder})
+                        createDuplicateImagesAsBuffers(options),
+                        toktx(ETC1S_DEFAULTS),
+                        meshopt({encoder: MeshoptEncoder}),
+                        extractHighresImagesToDiskAndSavePathInExtras(options),
                     ])
                 }
             );
