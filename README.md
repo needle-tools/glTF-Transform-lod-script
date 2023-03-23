@@ -8,25 +8,21 @@ Contains two scripts built on top of gltf-transform:
 
 ```js
 npm install
-npm run gltf-transform -- fullProcess "path/to/myFile.glb" --config config.mjs --verbose
+npm run gltf-transform -- fullProcess "path/to/myFile.glb" --config config.mjs --verbose --ver 4
 ```
 
 This will
-- create a new folder `myFile`
 - strip normals/tangents/vertex colors from the file
 - create a 128x128 copy of each baseColorTexture
 - make materials unlit
 - compress with meshopt and etc1s
-- move the original textures to `myFile/hd/<textureName>.ktx2` and reference them from each material
-- create `myFile/myFile.glb` which has the low-resolution textures.
+- create `myFile.etc1s+meshopt+deferred.4.glb` which has the low-resolution textures.
+- move the compressed high-res textures to `myFile.etc1s+meshopt+deferred.4/<textureName>.ktx2` and reference them from each material
 
+The parameter `--ver` is optional.  
+It appends that version to both the folder and the .glb file name, such as `--ver 4`: `myFile-1.2` → `myFile-1.2.4`.
 
-You can also provide a version suffix `--ver`:
-```js
-npm run gltf-transform -- fullProcess "path/to/myFile.glb" --ver 5 --config config.mjs --verbose
-```
-
-This will append that version to both the folder and the .glb file name, such as `--ver 5`: `myFile-1.2` → `myFile-1.2.5`.
+You can also choose to disable toktx/meshopt with `--noToktx` and `--noMeshopt`. The generated folders for HD textures will have matching names.
 
 ## Extras format
 

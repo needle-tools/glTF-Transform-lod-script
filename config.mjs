@@ -46,32 +46,59 @@ export default {
             .option('--ver <suffix>', 'Version suffix (e.g. 1.2.5 → 1.2.5.2', {
                 default: '',
             })
+            .option('--noToktx', 'Skip ETC1S compression', {
+                default: false,
+            })
+            .option('--noMeshopt', 'Skip meshopt compression', {
+                default: false,
+            })
             // .argument('<output>', 'Path to write output')
             .action(({ args, options, logger }) => {
                 const filename = path.basename(args.input, '.glb');
                 const versionSuffix = (options.ver !== '' && options.ver !== undefined) ? '.' + options.ver : '';
-                const dir = path.dirname(args.input) + '/' + filename + versionSuffix;
+                let filenameWithHints = filename + versionSuffix;
+                
+                // ensure we can see what operations have been done on the file
+                if (!options.noToktx) {
+                    filenameWithHints += '.etc1s';
+                }
+                if (!options.noMeshopt) {
+                    if (!options.noToktx)
+                        filenameWithHints += '+meshopt';
+                    else
+                        filenameWithHints += '.meshopt';
+                }
+                
+                // ensure we don't override the original file
+                if (options.noToktx && options.noMeshopt)
+                    filenameWithHints += '.deferred';
+                else
+                    filenameWithHints += '+deferred';
+
+                const dir = filename + '/' + filenameWithHints;
                 
                 // root folder for export, required for some functions
-                options.baseDir = dir;
-                options.hdDir = "hd";
+                options.baseDir = "";
+                options.hdDir = filenameWithHints;// + "_hd";
                 
                 // delete directory, then recreate it
-                const hdFullDir = options.baseDir + '/' + options.hdDir;
+                const actualBaseDir = (options.baseDir ? options.baseDir + '/' : "");
+                const hdFullDir = actualBaseDir + options.hdDir;
                 if (options.baseDir) clearAndEnsureDir(options.baseDir);
                 if (options.hdDir) clearAndEnsureDir(hdFullDir);                
 
-                const outputPath = options.baseDir + "/" + filename + versionSuffix + ".glb";
+                const outputPath = actualBaseDir + filenameWithHints + ".glb";
 
-                Session.create(io, logger, args.input, outputPath).transform(
-                    ...[
-                        stripChannelsAndMakeUnlit(options),
-                        prune(),
-                        createDuplicateImagesAsBuffers(options),
-                        toktx(ETC1S_DEFAULTS),
-                        meshopt({encoder: MeshoptEncoder}),
-                        extractHighresImagesToDiskAndSavePathInExtras(options),
-                    ])
+                const transforms = [
+                    stripChannelsAndMakeUnlit(options),
+                    prune(),
+                    createDuplicateImagesAsBuffers(options),
+                ]
+                if (!options.noToktx) transforms.push(toktx(ETC1S_DEFAULTS));
+                if (!options.noMeshopt) transforms.push(meshopt({encoder: MeshoptEncoder}));
+                transforms.push(extractHighresImagesToDiskAndSavePathInExtras(options));
+
+                Session.create(io, logger, args.input, outputPath).transform(...transforms);
                 }
             );
 
