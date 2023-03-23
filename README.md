@@ -6,10 +6,9 @@ Contains two scripts built on top of gltf-transform:
 
 ## How to use
 
-```js
-npm install
-npm run gltf-transform -- fullProcess "path/to/myFile.glb" --config config.mjs --verbose --ver 4
-```
+1. clone this repo
+2. run `npm install`
+3. run `npm run gltf-transform -- fullProcess "path/to/myFile.glb" --ver 4 --config config.mjs --verbose`
 
 This will
 - strip normals/tangents/vertex colors from the file
