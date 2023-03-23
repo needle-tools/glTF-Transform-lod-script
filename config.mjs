@@ -16,6 +16,15 @@ import { meshopt } from '@gltf-transform/functions';
 import path from "path";
 import fs from "fs";
 
+function clearAndEnsureDir(dir) {
+    if (!dir) return;
+
+    if (fs.existsSync(dir))
+        fs.rmdirSync(dir, { recursive: true });
+
+    fs.mkdirSync(dir, { recursive: true });
+}
+
 export default {
     extensions: [...ALL_EXTENSIONS, LODExtension],
     onProgramReady: ({ program, io, Session }) => {
@@ -43,14 +52,15 @@ export default {
                 const versionSuffix = (options.ver !== '' && options.ver !== undefined) ? '.' + options.ver : '';
                 const dir = path.dirname(args.input) + '/' + filename + versionSuffix;
                 
-                // delete directory, then recreate it
-                if (fs.existsSync(dir))
-                    fs.rmdirSync(dir, { recursive: true });
-                fs.mkdirSync(dir, { recursive: true });
-
                 // root folder for export, required for some functions
                 options.baseDir = dir;
+                options.hdDir = "hd";
                 
+                // delete directory, then recreate it
+                const hdFullDir = options.baseDir + '/' + options.hdDir;
+                if (options.baseDir) clearAndEnsureDir(options.baseDir);
+                if (options.hdDir) clearAndEnsureDir(hdFullDir);                
+
                 const outputPath = options.baseDir + "/" + filename + versionSuffix + ".glb";
 
                 Session.create(io, logger, args.input, outputPath).transform(

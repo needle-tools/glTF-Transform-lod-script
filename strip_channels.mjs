@@ -46,7 +46,7 @@ function switchMaterialsToUnlit(document) {
     }
 }
 
-const LOW_RES = "__lowres";
+const LOW_RES = "__ld";
 
 export function createDuplicateImagesAsBuffers(options) {
     return async (document) => {
@@ -86,8 +86,8 @@ export function extractHighresImagesToDiskAndSavePathInExtras(options) {
                 const extension = mime.split("/")[1];
                 const data = baseColorTexture.getImage();
 
-                const hdDir = "hd";
-                const fullDir = options.baseDir + "/" + hdDir;
+                const hdDir = options.hdDir;
+                const fullDir = (options.baseDir ? options.baseDir + "/" : "") + hdDir;
                 // create directory if it doesn't exist
                 fs.mkdirSync(fullDir, { recursive: true });
 
@@ -110,6 +110,11 @@ export function extractHighresImagesToDiskAndSavePathInExtras(options) {
                 baseColorTexture.dispose();
             }
         }
+
+        // mark the root so that we know it's a deferred asset
+        document.getRoot().setExtras({
+            deferred: true
+        });
     }
 }
 
