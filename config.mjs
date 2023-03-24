@@ -75,17 +75,18 @@ export default {
                 else
                     filenameWithHints += '+deferred';
 
-                const dir = filename + '/' + filenameWithHints;
+                // get directory of input file
+                const inputDir = path.dirname(args.input);
                 
                 // root folder for export, required for some functions
-                options.baseDir = "";
+                options.baseDir = inputDir;
                 options.hdDir = filenameWithHints;// + "_hd";
                 
                 // delete directory, then recreate it
                 const actualBaseDir = (options.baseDir ? options.baseDir + '/' : "");
                 const hdFullDir = actualBaseDir + options.hdDir;
-                if (options.baseDir) clearAndEnsureDir(options.baseDir);
-                if (options.hdDir) clearAndEnsureDir(hdFullDir);                
+                // if (options.baseDir) clearAndEnsureDir(options.baseDir);
+                if (options.hdDir) clearAndEnsureDir(hdFullDir);
 
                 const outputPath = actualBaseDir + filenameWithHints + ".glb";
 
@@ -98,6 +99,8 @@ export default {
                 if (!options.noMeshopt) transforms.push(meshopt({encoder: MeshoptEncoder}));
                 transforms.push(extractHighresImagesToDiskAndSavePathInExtras(options));
 
+                // log full path of outputPath
+                console.log("Output path: " + outputPath);
                 Session.create(io, logger, args.input, outputPath).transform(...transforms);
                 }
             );

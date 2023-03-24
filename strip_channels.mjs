@@ -74,6 +74,7 @@ export function createDuplicateImagesAsBuffers(options) {
 
 export function extractHighresImagesToDiskAndSavePathInExtras(options) {
     return async (document) => {
+        const existingTextures = document.getRoot().listTextures();
         // iterate all materials and duplicate the baseColorTexture to the emissiveTexture slot, but as buffer
         for (const material of document.getRoot().listMaterials()) {
             const baseColorTexture = material.getBaseColorTexture();
@@ -81,7 +82,12 @@ export function extractHighresImagesToDiskAndSavePathInExtras(options) {
 
             if (baseColorTexture && emissiveTexture && emissiveTexture.getName().endsWith(LOW_RES)) {
                 
-                const name = baseColorTexture.getName();
+                let name = baseColorTexture.getName();
+                if (!name) {
+                    // get index of texture in document
+                    const index = existingTextures.indexOf(baseColorTexture);
+                    name = "baseColorTexture_" + index;
+                }
                 const mime = baseColorTexture.getMimeType();
                 const extension = mime.split("/")[1];
                 const data = baseColorTexture.getImage();
