@@ -80,7 +80,7 @@ export function makeLods(options) {
     const ratios = options.ratio
         ? options.ratio.split(',').map(value => Number(value)) : [0.5, 0.25, 0.125, 0.05, 0];
     const errors = options.error
-        ? options.error.split(',').map(value => Number(value)) : [0.001, 0.01, 0.01, 0.001, 0.005];
+        ? options.error.split(',').map(value => Number(value)) : [0.001, 0.03, 0.05, 0.08, 1000];
     const coverages = options.coverage
         ? options.coverage.split(',').map(value => Number(value)) : [0.5, 0.25, 0.125, 0.125 / 2, 0.125 / 4, 0];
     const textureSizes = options.texture
@@ -104,7 +104,20 @@ export function makeLods(options) {
             return texture;
         };
 
+        // strip all animations
+        for (const animation of document.getRoot().listAnimations()) {
+            animation.dispose();
+        }
+
         for (const mesh of document.getRoot().listMeshes()) {
+
+            // log vertex count of mesh
+            let vertexCount = 0;
+            for (const prim of mesh.listPrimitives()) {
+                vertexCount += prim.getAttribute('POSITION').getArray().length;
+            }
+            // console.log(`Mesh ${mesh.getName()} has ${vertexCount} vertices.`);
+            if (vertexCount < 1000) continue;
 
             // Generate LOD Primitives.
             const lodMeshes = [];
@@ -115,6 +128,9 @@ export function makeLods(options) {
                 const lodMesh = document.createMesh(mesh.getName() + suffix);
                 for (const prim of mesh.listPrimitives()) {
                     const lodPrimitive = simplifyPrimitive(document, prim.clone(), { ratio: ratio, error: error, simplifier });
+                    if (prim.getName()) {
+                        lodPrimitive.setName(mesh.getName() + suffix);
+                    }
 
                     // Generate LOD textures and materials if texture resize is needed.
                     if (textureSizes.length > 0) {
@@ -162,6 +178,10 @@ export function makeLods(options) {
             mesh.listParents().forEach((parent) => {
                 if (parent instanceof Node) {
                     parent.setExtension(MSFT_LOD, lod);
+                    // add child nodes with these meshes
+                    for (const lodMesh of lodMeshes) {
+                        parent.addChild(document.createNode(lodMesh.getName()).setMesh(lodMesh));
+                    }
                 }
             });
         }

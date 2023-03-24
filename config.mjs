@@ -11,7 +11,7 @@ import { prune } from '@gltf-transform/functions';
 
 import { MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer';
 import { ETC1S_DEFAULTS, toktx } from '@gltf-transform/cli';
-import { meshopt } from '@gltf-transform/functions';
+import { draco, meshopt } from '@gltf-transform/functions';
 
 import path from "path";
 import fs from "fs";
@@ -110,10 +110,37 @@ export default {
             .command('lods', 'Create LODs')
             .help('Creates LODs')
             .argument('<input>', 'Path to read glTF 2.0 (.glb, .gltf) model')
-            .argument('<output>', 'Path to write output')
+            .option('--ver <suffix>', 'Version suffix (e.g. 1.2.5 → 1.2.5.2', {
+                default: '',
+            })
+            .option('--draco', 'Use draco instead of meshopt', {
+                default: false,
+            })
+            // .argument('<output>', 'Path to write output')
             // TODO add custom arguments to feed into madeLods
-            .action(({ args, options, logger }) =>
-                Session.create(io, logger, args.input, args.output).transform(makeLods(options))
-            );
+            .action(({ args, options, logger }) => {
+
+                const filename = path.basename(args.input, '.glb');
+                const versionSuffix = (options.ver !== '' && options.ver !== undefined) ? '.' + options.ver : '';
+                let filenameWithHints = filename + versionSuffix;
+                const encoderName = options.draco ? 'draco' : 'meshopt';
+                let output = filenameWithHints + ".etc1s+" + encoderName + "+lods.glb";
+                
+                output = path.dirname(args.input) + "/" + output;
+
+                const transforms = [
+                    stripChannelsAndMakeUnlit(options),
+                    makeLods(options),
+                    prune(),
+                ];
+
+                transforms.push(toktx(ETC1S_DEFAULTS));
+                if (options.draco)
+                    transforms.push(draco());
+                else
+                    transforms.push(meshopt({encoder: MeshoptEncoder}));
+
+                Session.create(io, logger, args.input, output).transform(...transforms)
+            });
     },
 };

@@ -46,6 +46,15 @@ function switchMaterialsToUnlit(document) {
     }
 }
 
+function renameMaterialsSoTheyStartWithChunk_(document) {
+    for (const material of document.getRoot().listMaterials()) {
+        const name = material.getName();
+        if (name && !name.startsWith('Chunk')) {
+            material.setName('Chunk' + name);
+        }
+    }
+}
+
 const LOW_RES = "__ld";
 
 export function createDuplicateImagesAsBuffers(options) {
@@ -129,5 +138,6 @@ export function stripChannelsAndMakeUnlit(options) {
         stripMeshAttributes(document);
         stripNormalMaps(document);
         switchMaterialsToUnlit(document);
+        renameMaterialsSoTheyStartWithChunk_(document);
     };
 }
